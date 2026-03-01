@@ -35,8 +35,8 @@ int run_vm_cycle(VM *vm) {
         printf("Unknown opcode %u\n", current_instruction.opcode);
         return 1;
     }
-    handler(vm, &current_instruction);
     vm->pc++;
+    handler(vm, &current_instruction);
     return 0;
 }
 
@@ -90,6 +90,7 @@ int init_vm(VM *vm) {
     vm->bytecode = NULL;
     vm->vtable = malloc(sizeof(vtable));
     init_vtable(vm->vtable);
+    vm->pc = 0;
 
     for (size_t i = 0; i < 15; i++){
         vm->regs[i].address = i;
