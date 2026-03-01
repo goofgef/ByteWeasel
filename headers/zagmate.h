@@ -1,29 +1,43 @@
 #ifndef ZAGMATE_ZAGMATE_H
 #define ZAGMATE_ZAGMATE_H
 #include <stdint.h>
+#include <stddef.h>
 
-/*
- *Unsigned half byte (4 bits)
-*/
-typedef struct{
-    uint8_t value : 4;
-}u_half_byte;
+typedef struct VM VM;
+typedef struct Instruction Instruction;
+typedef int (*Handler)(struct VM*, struct Instruction*);
 
-/*
- *Signed half byte (4 bits)
-*/
-typedef struct{
-    int8_t value : 4;
-}half_byte;
+typedef struct {
+    uint32_t address;
+    union {
+        uint32_t value;
+        uint8_t bytes[4];
+    } data;
+} Register;
 
-/*
- *Instruction struct,
-*/
-typedef struct{
-    half_byte byte_count;
+typedef struct Instruction {
     uint8_t opcode;
-    int32_t operands[14];
-}Instruction;
+    uint32_t operands[4];
+    uint8_t operand_count;
+} Instruction;
 
+typedef struct {
+    int (*write)(struct VM*, Instruction*);
+    int (*run)(struct VM*);
+    int (*clean)(struct VM*);
+    int (*register_handler)(struct VM*, uint8_t, Handler);
+} vtable;
 
+typedef struct VM {
+    vtable* vtable;
+
+    size_t program_size;
+
+    Handler handlers[256];
+    Instruction* bytecode;
+    Register regs[16];
+} VM;
+
+int init_vm(VM *vm);
+Register* find_register(Register* regs, uint32_t addr, size_t count);
 #endif //ZAGMATE_ZAGMATE_H
