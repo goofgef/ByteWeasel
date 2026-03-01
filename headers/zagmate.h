@@ -1,3 +1,13 @@
+#ifdef _WIN32
+  #ifdef ZAGMATE_EXPORTS
+    #define ZAGMATE_API __declspec(dllexport)
+  #else
+    #define ZAGMATE_API __declspec(dllimport)
+  #endif
+#else
+  #define ZAGMATE_API __attribute__((visibility("default")))
+#endif
+
 #ifndef ZAGMATE_ZAGMATE_H
 #define ZAGMATE_ZAGMATE_H
 #include <stdint.h>
