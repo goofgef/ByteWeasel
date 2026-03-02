@@ -35,6 +35,7 @@ int run_vm_cycle(VM *vm) {
         printf("Unknown opcode %u\n", current_instruction.opcode);
         return 1;
     }
+
     vm->pc++;
     handler(vm, &current_instruction);
     return 0;
@@ -46,6 +47,9 @@ int run_vm(VM *vm) {
         return 1;
     }
     for (size_t i = 0; i < vm->program_size; i++) {
+        if (vm->halted){
+            break;
+        }
         run_vm_cycle(vm);
     }
 }
@@ -103,6 +107,7 @@ Register* find_register(Register* regs, uint32_t addr, size_t count){
      for (size_t i = 0; i < count; i++){
         if (regs[i].address == addr) return &regs[i];
      }
+     printf("Could not find register %u.\n", addr);
      return NULL;
 }
 
@@ -124,6 +129,7 @@ int add(VM* vm, Instruction* instruction){
     Register* reg0 = find_register(vm->regs, instruction->operands[0], 15);
     Register* reg1 = find_register(vm->regs, instruction->operands[1], 15);
     Register* reg2 = find_register(vm->regs, instruction->operands[2], 15);
+
     if (!reg0 || !reg1 || !reg2){
         printf("Not enough registers!\n");
         return 1;
@@ -142,7 +148,7 @@ int main() {
     Instruction instr = {0};
     instr.opcode = 0;
     instr.operand_count = 3;
-    instr.operands = malloc(3 * sizeof(uint32_t));
+    instr.operands = malloc(3 * sizeof(int64_t));
     instr.operands[0] = 0; // dest
     instr.operands[1] = 1; // src1
     instr.operands[2] = 2; // src2

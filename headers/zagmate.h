@@ -13,21 +13,30 @@
 #include <stdint.h>
 #include <stddef.h>
 
+enum RegisterType{
+    TYPE_INT,
+    TYPE_FLOAT,
+    TYPE_PTR
+};
 typedef struct VM VM;
 typedef struct Instruction Instruction;
 typedef int (*Handler)(struct VM*, struct Instruction*);
 
 typedef struct {
     uint32_t address;
+    RegisterType type;
+
     union {
-        int32_t value;
-        int8_t bytes[4];
+        void* ptr
+        double value_float;
+        int64_t value;
+        int8_t bytes[8];
     } data;
 } Register;
 
 typedef struct Instruction {
     uint8_t opcode;
-    uint32_t* operands;
+    int64_t* operands;
     uint8_t operand_count;
 } Instruction;
 
@@ -40,6 +49,7 @@ typedef struct {
 
 typedef struct VM {
     vtable* vtable;
+    int halted;
 
     size_t program_size;
     size_t pc;
