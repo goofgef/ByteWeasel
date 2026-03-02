@@ -24,10 +24,10 @@ typedef int (*Handler)(struct VM*, struct Instruction*);
 
 typedef struct {
     uint32_t address;
-    RegisterType type;
+    enum RegisterType type;
 
     union {
-        void* ptr
+        void* ptr;
         double value_float;
         int64_t value;
         int8_t bytes[8];
