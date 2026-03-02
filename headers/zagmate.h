@@ -41,6 +41,7 @@ typedef struct Instruction {
 } Instruction;
 
 typedef struct {
+    int (*append)(struct VM*, struct Instruction);
     int (*write)(struct VM*, Instruction*, size_t);
     int (*run)(struct VM*);
     int (*clean)(struct VM*);
@@ -48,7 +49,7 @@ typedef struct {
 } vtable;
 
 typedef struct VM {
-    vtable* vtable;
+    vtable *vtable;
     int halted;
 
     size_t program_size;

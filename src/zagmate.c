@@ -16,7 +16,19 @@ int write_vm(VM *vm, Instruction* bytecode, size_t len) {
 
     vm->bytecode = bytecode;
     vm->program_size = len;
+
     return 0;
+}
+
+int append_vm(VM *vm, Instruction instruction) {
+    if (!vm){
+        printf("VM not initialized!\n");
+        return 1;
+    }
+
+    vm->bytecode[vm->program_size] = instruction;
+
+    vm->program_size++;
 }
 
 int run_vm_cycle(VM *vm) {
@@ -76,7 +88,12 @@ int clean_vm(VM *vm) {
         free(vm->bytecode[i].operands);
     }
 
+    vm->program_size = 0;
+    vm->bytecode = NULL;
+
     free(vm->bytecode);
+    free(vm->vtable);
+
     vm->program_size = 0;
     return 0;
 }
@@ -94,8 +111,10 @@ int init_vm(VM *vm) {
     vm->bytecode = NULL;
     vm->vtable = malloc(sizeof(vtable));
     init_vtable(vm->vtable);
+
     vm->pc = 0;
 
+    vm->halted = 0;
     for (size_t i = 0; i < 15; i++){
         vm->regs[i].address = i;
         vm->regs[i].data.value = 0;
@@ -162,6 +181,5 @@ int main() {
     printf("Result in r0: %d\n", vm.regs[0].data.value); //18
 
     vm.vtable->clean(&vm);
-    free(vm.vtable);
     return 0;
 }
