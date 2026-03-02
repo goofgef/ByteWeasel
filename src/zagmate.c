@@ -65,6 +65,25 @@ int run_vm(VM *vm) {
         run_vm_cycle(vm);
     }
 }
+
+Instruction make_vm(uint8_t opcode, uint8_t operand_count, int64_t operands[]){
+    Instruction instruction;
+    instruction.opcode = opcode;
+    instruction.operand_count = operand_count;
+    instruction.operands = malloc(operand_count * sizeof(int64_t));
+
+    if (!instruction.operands){
+        printf("Memory allocation error!\n");
+        return instruction;
+    }
+
+    for (size_t i = 0; i < operand_count; i++){
+        instruction.operands[i] = operands[i];
+    }
+
+    return instruction;
+}
+
 int register_handler_vm(VM* vm, uint8_t opcode, Handler handler) {
     if (!handler){
         printf("Handler not found!\n");
@@ -103,6 +122,7 @@ int init_vtable(vtable* vtable) {
     vtable->run = run_vm;
     vtable->clean = clean_vm;
     vtable->register_handler = register_handler_vm;
+    vtable->make = make_vm;
     return 0;
 }
 
@@ -115,7 +135,7 @@ int init_vm(VM *vm) {
     vm->pc = 0;
 
     vm->halted = 0;
-    for (size_t i = 0; i < 15; i++){
+    for (size_t i = 0; i < 31; i++){
         vm->regs[i].address = i;
         vm->regs[i].data.value = 0;
     }
@@ -128,58 +148,4 @@ Register* find_register(Register* regs, uint32_t addr, size_t count){
      }
      printf("Could not find register %u.\n", addr);
      return NULL;
-}
-
-int add(VM* vm, Instruction* instruction){
-    if (!vm){
-        printf("VM not initialized!\n");
-        return 1;
-    }
-    if (!instruction){
-        printf("Instruction is empty!\n");
-        return 1;
-    }
-
-    if (instruction->operand_count < 3) {
-        printf("Not enough operands!\n");
-        return 1;
-    }
-
-    Register* reg0 = find_register(vm->regs, instruction->operands[0], 15);
-    Register* reg1 = find_register(vm->regs, instruction->operands[1], 15);
-    Register* reg2 = find_register(vm->regs, instruction->operands[2], 15);
-
-    if (!reg0 || !reg1 || !reg2){
-        printf("Not enough registers!\n");
-        return 1;
-    }
-
-    reg0->data.value = reg1->data.value + reg2->data.value;
-    return 0;
-}
-
-int main() {
-    VM vm = {};
-    init_vm(&vm);
-
-    vm.vtable->register_handler(&vm, 0, &add);
-
-    Instruction instr = {0};
-    instr.opcode = 0;
-    instr.operand_count = 3;
-    instr.operands = malloc(3 * sizeof(int64_t));
-    instr.operands[0] = 0; // dest
-    instr.operands[1] = 1; // src1
-    instr.operands[2] = 2; // src2
-
-    vm.regs[1].data.value = 7;
-    vm.regs[2].data.value = 11;
-
-    vm.vtable->write(&vm, &instr, 1);
-    vm.vtable->run(&vm);
-
-    printf("Result in r0: %d\n", vm.regs[0].data.value); //18
-
-    vm.vtable->clean(&vm);
-    return 0;
 }

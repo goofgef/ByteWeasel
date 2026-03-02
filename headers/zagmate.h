@@ -41,6 +41,7 @@ typedef struct Instruction {
 } Instruction;
 
 typedef struct {
+    Instruction (*make)(uint8_t, uint8_t, int64_t[]);
     int (*append)(struct VM*, struct Instruction);
     int (*write)(struct VM*, Instruction*, size_t);
     int (*run)(struct VM*);
@@ -58,7 +59,7 @@ typedef struct VM {
 
     Handler handlers[256];
     Instruction* bytecode;
-    Register regs[16];
+    Register regs[32];
 
     int64_t stack[256];
 } VM;
