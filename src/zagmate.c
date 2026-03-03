@@ -5,13 +5,13 @@
 #include <inttypes.h>
 
 ReturnStatus write_vm(VM *vm, Instruction* bytecode, size_t len) {
-    if (!bytecode){
-        printf("Bytecode is empty!\n");
-        return NULL_BYTECODE;
-    }
     if (!vm){
         printf("VM not initialized!\n");
         return NULL_VM;
+    }
+    if (!bytecode){
+        printf("Bytecode is empty!\n");
+        return NULL_BYTECODE;
     }
 
     vm->bytecode = bytecode;
@@ -120,6 +120,9 @@ ReturnStatus clean_vm(VM *vm) {
     free(vm->bytecode);
     free(vm->vtable);
 
+    vm->vtable = NULL;
+    vm->bytecode = NULL;
+
     vm->program_size = 0;
     return OK;
 }
@@ -143,7 +146,7 @@ ReturnStatus init_vm(VM *vm) {
     vm->pc = 0;
 
     vm->halted = 0;
-    for (size_t i = 0; i < 31; i++){
+    for (size_t i = 0; i < 32; i++){
         vm->regs[i].address = i;
         vm->regs[i].data.value = 0;
     }
