@@ -29,6 +29,8 @@ int append_vm(VM *vm, Instruction instruction) {
     vm->bytecode[vm->program_size] = instruction;
 
     vm->program_size++;
+
+    return 0;
 }
 
 int run_vm_cycle(VM *vm) {
@@ -108,7 +110,6 @@ int clean_vm(VM *vm) {
     }
 
     vm->program_size = 0;
-    vm->bytecode = NULL;
 
     free(vm->bytecode);
     free(vm->vtable);
