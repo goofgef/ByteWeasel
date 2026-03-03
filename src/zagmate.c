@@ -4,31 +4,35 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-int write_vm(VM *vm, Instruction* bytecode, size_t len) {
+ReturnStatus write_vm(VM *vm, Instruction* bytecode, size_t len) {
     if (!bytecode){
         printf("Bytecode is empty!\n");
-        return 1;
+        return NULL_BYTECODE;
     }
     if (!vm){
         printf("VM not initialized!\n");
-        return 1;
+        return NULL_VM;
     }
 
     vm->bytecode = bytecode;
     vm->program_size = len;
 
-    return 0;
+    return OK;
 }
 
-int append_vm(VM *vm, Instruction instruction) {
+ReturnStatus append_vm(VM *vm, Instruction instruction) {
     if (!vm){
         printf("VM not initialized!\n");
-        return 1;
+        return NULL_VM;
     }
 
-    if (!vm->bytecode || vm->program_size >= vm->capacity){
+    if (!vm->bytecode){
+        printf("Cannot append to bytecode, bytecode is NULL!\n");
+        return NULL_BYTECODE;
+    }
+    if (vm->program_size >= vm->capacity){
         printf("Cannot append to bytecode, bytecode is full!\n");
-        return 1;
+        return FULL_BYTECODE;
     }
     vm->bytecode[vm->program_size] = instruction;
 
@@ -37,21 +41,21 @@ int append_vm(VM *vm, Instruction instruction) {
     return 0;
 }
 
-int run_vm_cycle(VM *vm) {
+ReturnStatus run_vm_cycle(VM *vm) {
     if (!vm){
         printf("VM not initialized!\n");
-        return 1;
+        return NULL_VM;
     }
     if (!vm->bytecode){
         printf("Bytecode is empty!\n");
-        return 1;
+        return NULL_BYTECODE;
     }
 
     Instruction current_instruction = vm->bytecode[vm->pc];
     Handler handler = vm->handlers[current_instruction.opcode];
     if (!handler){
         printf("Unknown opcode %u\n", current_instruction.opcode);
-        return 1;
+        return GENERAL_NULL;
     }
 
     vm->pc++;
@@ -59,10 +63,10 @@ int run_vm_cycle(VM *vm) {
     return 0;
 }
 
-int run_vm(VM *vm) {
+ReturnStatus run_vm(VM *vm) {
     if (!vm){
         printf("VM not initialized!\n");
-        return 1;
+        return NULL_VM;
     }
     for (size_t i = 0; i < vm->program_size; i++) {
         if (vm->halted){
@@ -70,7 +74,7 @@ int run_vm(VM *vm) {
         }
         run_vm_cycle(vm);
     }
-    return 0;
+    return OK;
 }
 
 Instruction make_vm(uint8_t opcode, uint8_t operand_count, int64_t operands[]){
@@ -91,23 +95,23 @@ Instruction make_vm(uint8_t opcode, uint8_t operand_count, int64_t operands[]){
     return instruction;
 }
 
-int register_handler_vm(VM* vm, uint8_t opcode, Handler handler) {
+ReturnStatus register_handler_vm(VM* vm, uint8_t opcode, Handler handler) {
     if (!handler){
         printf("Handler not found!\n");
-        return 1;
+        return GENERAL_NULL;
     }
     if (!vm){
         printf("VM not initialized!\n");
-        return 1;
+        return NULL_VM;
     }
     vm->handlers[opcode] = handler;
     return 0;
 }
 
-int clean_vm(VM *vm) {
+ReturnStatus clean_vm(VM *vm) {
     if (!vm){
         printf("VM not initialized!\n");
-        return 1;
+        return NULL_VM;
     }
 
     for (size_t i = 0; i < vm->program_size; i++) {
@@ -120,19 +124,19 @@ int clean_vm(VM *vm) {
     free(vm->vtable);
 
     vm->program_size = 0;
-    return 0;
+    return OK;
 }
 
-int init_vtable(vtable* vtable) {
+ReturnStatus init_vtable(vtable* vtable) {
     vtable->write = write_vm;
     vtable->run = run_vm;
     vtable->clean = clean_vm;
     vtable->register_handler = register_handler_vm;
     vtable->make = make_vm;
-    return 0;
+    return OK;
 }
 
-int init_vm(VM *vm) {
+ReturnStatus init_vm(VM *vm) {
     vm->program_size = 0;
     vm->bytecode = NULL;
     vm->vtable = malloc(sizeof(vtable));
@@ -146,7 +150,7 @@ int init_vm(VM *vm) {
         vm->regs[i].address = i;
         vm->regs[i].data.value = 0;
     }
-    return 0;
+    return OK;
 }
 
 Register* find_register(Register* regs, uint32_t addr, size_t count){

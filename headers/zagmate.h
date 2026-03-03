@@ -13,11 +13,24 @@
 #include <stdint.h>
 #include <stddef.h>
 
+typedef enum{
+    OK = 0,
+    NULL_VM,
+    NULL_BYTECODE,
+    NULL_REG,
+    NULL_STACK,
+    NULL_INSTRUCTION,
+    NULL_UNKNOWN_OPCODE,
+    FULL_BYTECODE,
+    GENERAL_NULL
+}ReturnStatus;
+
 enum RegisterType{
     TYPE_INT,
     TYPE_FLOAT,
     TYPE_PTR
 };
+
 typedef struct VM VM;
 typedef struct Instruction Instruction;
 typedef int (*Handler)(struct VM*, struct Instruction*);
@@ -42,11 +55,11 @@ typedef struct Instruction {
 
 typedef struct {
     Instruction (*make)(uint8_t, uint8_t, int64_t[]);
-    int (*append)(struct VM*, struct Instruction);
-    int (*write)(struct VM*, Instruction*, size_t);
-    int (*run)(struct VM*);
-    int (*clean)(struct VM*);
-    int (*register_handler)(struct VM*, uint8_t, Handler);
+    ReturnStatus (*append)(struct VM*, struct Instruction);
+    ReturnStatus (*write)(struct VM*, Instruction*, size_t);
+    ReturnStatus (*run)(struct VM*);
+    ReturnStatus (*clean)(struct VM*);
+    ReturnStatus (*register_handler)(struct VM*, uint8_t, Handler);
 } vtable;
 
 typedef struct VM {
@@ -65,6 +78,6 @@ typedef struct VM {
     int64_t stack[256];
 } VM;
 
-int init_vm(VM *vm);
+ReturnStatus init_vm(VM *vm);
 Register* find_register(Register* regs, uint32_t addr, size_t count);
 #endif //ZAGMATE_ZAGMATE_H
