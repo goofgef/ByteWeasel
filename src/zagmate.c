@@ -53,13 +53,19 @@ ReturnStatus run_vm_cycle(VM *vm) {
 
     Instruction current_instruction = vm->bytecode[vm->pc];
     Handler handler = vm->handlers[current_instruction.opcode];
+
     if (!handler){
         fprintf(stderr,"Unknown opcode %u\n", current_instruction.opcode);
         return GENERAL_NULL;
     }
 
     vm->pc++;
-    handler(vm, &current_instruction);
+    int result = handler(vm, &current_instruction);
+    if (result != 0){
+        vm->halted = 1;
+        fprintf(stderr, "Handler failed for opcode %u!\n",current_instruction.opcode);
+        return GENERAL_NULL;
+    }
     return 0;
 }
 
