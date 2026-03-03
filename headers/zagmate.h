@@ -57,11 +57,14 @@ typedef struct Instruction {
 
 typedef struct {
     Instruction (*make)(uint8_t, uint8_t, int64_t[]);
+
     ReturnStatus (*append)(struct VM*, struct Instruction);
     ReturnStatus (*write)(struct VM*, Instruction*, size_t);
     ReturnStatus (*run)(struct VM*);
     ReturnStatus (*clean)(struct VM*);
     ReturnStatus (*register_handler)(struct VM*, uint8_t, Handler);
+
+    ReturnStatus (*reset)(struct VM*);
 } vtable;
 
 typedef struct VM {
@@ -80,6 +83,6 @@ typedef struct VM {
     int64_t stack[256];
 } VM;
 
-ZAGMATE_API ReturnStatus init_vm(VM *vm);
+ZAGMATE_API ReturnStatus init_vm(VM *vm, size_t capacity);
 ZAGMATE_API Register* find_register(Register* regs, int64_t addr, size_t count);
 #endif //ZAGMATE_ZAGMATE_H
