@@ -144,9 +144,5 @@ int init_vm(VM *vm) {
 }
 
 Register* find_register(Register* regs, uint32_t addr, size_t count){
-     for (size_t i = 0; i < count; i++){
-        if (regs[i].address == addr) return &regs[i];
-     }
-     printf("Could not find register %u.\n", addr);
-     return NULL;
+    return &regs[addr];
 }

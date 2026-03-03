@@ -8,6 +8,7 @@ file(GLOB LIB_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/zagmate.c")
 
 add_library(zagmate SHARED ${LIB_SOURCES})
 target_include_directories(zagmate PUBLIC ${ZAGMATE_HEADERS})
+target_compile_options(zagmate PRIVATE -g)
 
 set_target_properties(zagmate PROPERTIES OUTPUT_NAME "zagmate_shared")
 
