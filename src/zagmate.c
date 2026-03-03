@@ -68,10 +68,7 @@ ReturnStatus run_vm(VM *vm) {
         printf("VM not initialized!\n");
         return NULL_VM;
     }
-    for (size_t i = 0; i < vm->program_size; i++) {
-        if (vm->halted){
-            break;
-        }
+    while (vm->pc < vm->program_size && !vm->halted) {
         run_vm_cycle(vm);
     }
     return OK;
@@ -154,5 +151,13 @@ ReturnStatus init_vm(VM *vm) {
 }
 
 Register* find_register(Register* regs, uint32_t addr, size_t count){
+    if (!regs){
+        printf("Registers not found!\n");
+        return NULL_REGISTER;
+    }
+    if (addr < 0 || addr >= count){
+        printf("Address out of bounds!\n");
+        return NULL_REGISTER;
+    }
     return &regs[addr];
 }

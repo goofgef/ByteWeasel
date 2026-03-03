@@ -22,6 +22,7 @@ typedef enum{
     NULL_INSTRUCTION,
     NULL_UNKNOWN_OPCODE,
     FULL_BYTECODE,
+    NULL_REGISTER,
     GENERAL_NULL
 }ReturnStatus;
 
@@ -78,6 +79,6 @@ typedef struct VM {
     int64_t stack[256];
 } VM;
 
-ReturnStatus init_vm(VM *vm);
-Register* find_register(Register* regs, uint32_t addr, size_t count);
+ZAGMATE_API ReturnStatus init_vm(VM *vm);
+ZAGMATE_API Register* find_register(Register* regs, uint32_t addr, size_t count);
 #endif //ZAGMATE_ZAGMATE_H

@@ -8,6 +8,7 @@ file(GLOB EXE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../src/*.c")
 
 add_executable(zagmate ${EXE_SOURCES})
 target_include_directories(zagmate PRIVATE ${ZAGMATE_HEADERS})
+target_compile_definitions(zagmate PRIVATE ZAGMATE_EXPORTS)
 target_compile_options(zagmate PRIVATE -g)
 
 if(WIN32)
