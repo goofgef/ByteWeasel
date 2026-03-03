@@ -64,7 +64,7 @@ typedef struct {
     ReturnStatus (*clean)(struct VM*);
     ReturnStatus (*register_handler)(struct VM*, uint8_t, Handler);
 
-    ReturnStatus (*reset)(struct VM*);
+    ReturnStatus (*reset)(struct VM*, size_t);
 } vtable;
 
 typedef struct VM {

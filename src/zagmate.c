@@ -127,7 +127,7 @@ ReturnStatus clean_vm(VM *vm) {
     return OK;
 }
 
-ReturnStatus reset_vm(VM* vm) {
+ReturnStatus reset_vm(VM* vm, size_t capacity) {
     if (!vm) {
         printf("VM not initialized!\n");
         return NULL_VM;
@@ -143,6 +143,7 @@ ReturnStatus reset_vm(VM* vm) {
     vm->pc = 0;
     vm->halted = 0;
     vm->sp = 0;
+    vm->capacity = capacity;
 
     for (size_t i = 0; i < 32; i++) {
         vm->regs[i].data.value = 0;
