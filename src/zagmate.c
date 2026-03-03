@@ -153,14 +153,14 @@ ReturnStatus init_vm(VM *vm) {
     return OK;
 }
 
-Register* find_register(Register* regs, uint32_t addr, size_t count){
+Register* find_register(Register* regs, int64_t addr, size_t count){
     if (!regs){
         printf("Registers not found!\n");
         return NULL_REGISTER;
     }
-    if (addr < 0 || addr >= count){
+    if (addr < 0 || (size_t)addr >= count){
         printf("Address out of bounds!\n");
         return NULL_REGISTER;
     }
-    return &regs[addr];
+    return &regs[(size_t)addr];
 }
