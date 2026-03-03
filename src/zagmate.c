@@ -124,7 +124,6 @@ ReturnStatus clean_vm(VM *vm) {
     vm->vtable = NULL;
     vm->bytecode = NULL;
 
-    vm->program_size = 0;
     return OK;
 }
 
@@ -152,6 +151,11 @@ ReturnStatus reset_vm(VM* vm, size_t capacity) {
 }
 
 ReturnStatus init_vtable(vtable* vtable) {
+    if (!vtable){
+        fprintf(stderr,"VTable is NULL!\n");
+        return NULL_VTABLE;
+    }
+
     vtable->write = write_vm;
     vtable->run = run_vm;
     vtable->clean = clean_vm;
@@ -176,6 +180,7 @@ ReturnStatus init_vm(VM *vm, size_t capacity) {
     vm->capacity = capacity;
 
     vm->pc = 0;
+    vm->sp = 0;
 
     vm->halted = 0;
     for (size_t i = 0; i < 32; i++){

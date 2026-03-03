@@ -7,7 +7,7 @@
 #include <inttypes.h>
 
 int main() {
-    VM vm = {};
+    VM vm = {0};
     init_vm(&vm, 2);
 
     vm.vtable->register_handler(&vm, 0, &add);
