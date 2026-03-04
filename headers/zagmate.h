@@ -45,7 +45,6 @@ typedef struct {
 } Symbol;
 
 typedef struct {
-    size_t address;
     enum RegisterType type;
 
     union {

@@ -216,7 +216,6 @@ ReturnStatus init_vm(VM *vm, size_t capacity) {
 
     vm->halted = 0;
     for (size_t i = 0; i < 32; i++){
-        vm->regs[i].address = i;
         vm->regs[i].data.value = 0;
     }
     return OK;
