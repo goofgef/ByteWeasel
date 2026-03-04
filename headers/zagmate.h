@@ -96,5 +96,5 @@ typedef struct VM {
 } VM;
 
 ZAGMATE_API ReturnStatus init_vm(VM *vm, size_t capacity);
-ZAGMATE_API Register* find_register(Register* regs, int64_t addr, size_t count);
+ZAGMATE_API Register* find_register(VM* vm, int64_t addr, size_t count);
 #endif //ZAGMATE_ZAGMATE_H

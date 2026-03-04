@@ -221,12 +221,12 @@ ReturnStatus init_vm(VM *vm, size_t capacity) {
     return OK;
 }
 
-Register* find_register(Register* regs, int64_t addr, size_t count){
-    if (!regs){
+Register* find_register(VM* vm, int64_t addr, size_t count){
+    if (!vm->regs){
         return NULL_REGISTER;
     }
     if (addr < 0 || (size_t)addr >= count){
         return NULL_REGISTER;
     }
-    return &regs[(size_t)addr];
+    return &vm->regs[(size_t)addr];
 }
