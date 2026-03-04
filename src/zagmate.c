@@ -69,6 +69,27 @@ ReturnStatus run_vm_cycle(VM *vm) {
     return 0;
 }
 
+ReturnStatus run_range_vm(VM *vm, size_t start, size_t end) {
+    if (!vm){
+        fprintf(stderr,"VM not initialized!\n");
+        return NULL_VM;
+    }
+
+    size_t old_pc = vm->pc;
+    vm->pc = start;
+
+    while (vm->pc < end && vm->pc < vm->program_size && !vm->halted) {
+        run_vm_cycle(vm);
+        if (vm->pc > end){
+            fprintf(stderr, "Warning: at runtime, something tried to manipulate PC when doing run_range, and maniuplated pc to be bigger than end, breaking execution loop\n");
+            break;
+        }
+    }
+
+    vm->pc = end;
+    return OK;
+}
+
 ReturnStatus run_vm(VM *vm) {
     if (!vm){
         fprintf(stderr,"VM not initialized!\n");
@@ -169,6 +190,8 @@ ReturnStatus init_vtable(vtable* vtable) {
     vtable->make = make_vm;
     vtable->reset = reset_vm;
     vtable->append = append_vm;
+    vtable->run_range = run_range_vm;
+
     return OK;
 }
 
