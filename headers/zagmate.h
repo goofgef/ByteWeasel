@@ -78,7 +78,7 @@ typedef struct {
 } vtable;
 
 typedef struct VM {
-    vtable *vtable;
+	vtable *vtable;
     int halted;
 
     size_t program_size;

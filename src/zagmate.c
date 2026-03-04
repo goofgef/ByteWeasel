@@ -150,9 +150,7 @@ ReturnStatus clean_vm(VM *vm) {
     vm->program_size = 0;
 
     free(vm->bytecode);
-    free(vm->vtable);
 
-    vm->vtable = NULL;
     vm->bytecode = NULL;
 
     return OK;
@@ -180,35 +178,24 @@ ReturnStatus reset_vm(VM* vm, size_t capacity) {
     return OK;
 }
 
-ReturnStatus init_vtable(vtable* vtable) {
-    if (!vtable){
-        return NULL_VTABLE;
-    }
-
-    vtable->write = write_vm;
-    vtable->run = run_vm;
-    vtable->clean = clean_vm;
-    vtable->register_handler = register_handler_vm;
-    vtable->make = make_vm;
-    vtable->reset = reset_vm;
-    vtable->append = append_vm;
-    vtable->run_range = run_range_vm;
-    vtable->find_symbol = find_symbol_vm;
-    vtable->register_symbol = register_symbol_vm;
-
-    return OK;
-}
+vtable default_vtable = {
+    .write            = write_vm,
+    .run              = run_vm,
+    .clean            = clean_vm,
+    .register_handler = register_handler_vm,
+    .make             = make_vm,
+    .reset            = reset_vm,
+    .append           = append_vm,
+    .run_range        = run_range_vm,
+    .find_symbol      = find_symbol_vm,
+    .register_symbol  = register_symbol_vm,
+};
 
 ReturnStatus init_vm(VM *vm, size_t capacity) {
     vm->program_size = 0;
     vm->bytecode = NULL;
-    vm->vtable = malloc(sizeof(vtable));
+    vm->vtable = &default_vtable;
 
-    if (!vm->vtable){
-        return NULL_VTABLE;
-    }
-
-    init_vtable(vm->vtable);
     vm->capacity = capacity;
 
     vm->pc = 0;
