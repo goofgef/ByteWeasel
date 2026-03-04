@@ -13,6 +13,9 @@ ZagMate is all about being dynamic and flexible.
 ### Why register-based?
 -Because register-based VMs are easier to map to machine code, are more effecient, and can be easier to optimize.
 
+### Why did you make this?
+-Because as open-source modern VMs are, like LuaVM, they arent open-source at heart. Sure, you can run it or touch its internals but your average coder probably wont be able to, say, add his own opcode. I dislike this, it feels like there is a massive closed source door for many VMs if you dont understand it. This is my attempt to fix that.
+
 ### Features
 - Pure C, no major dependencies
 - Register-based execution model
