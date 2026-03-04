@@ -3,14 +3,13 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <string.h>
 
 ReturnStatus write_vm(VM *vm, Instruction* bytecode, size_t len) {
     if (!vm){
-        fprintf(stderr,"VM not initialized!\n");
         return NULL_VM;
     }
     if (!bytecode){
-        fprintf(stderr,"Bytecode is empty!\n");
         return NULL_BYTECODE;
     }
 
@@ -22,16 +21,13 @@ ReturnStatus write_vm(VM *vm, Instruction* bytecode, size_t len) {
 
 ReturnStatus append_vm(VM *vm, Instruction instruction) {
     if (!vm){
-        fprintf(stderr,"VM not initialized!\n");
         return NULL_VM;
     }
 
     if (!vm->bytecode){
-        fprintf(stderr,"Cannot append to bytecode, bytecode is NULL!\n");
         return NULL_BYTECODE;
     }
     if (vm->program_size >= vm->capacity){
-        fprintf(stderr,"Cannot append to bytecode, bytecode is full!\n");
         return FULL_BYTECODE;
     }
     vm->bytecode[vm->program_size] = instruction;
@@ -43,11 +39,9 @@ ReturnStatus append_vm(VM *vm, Instruction instruction) {
 
 ReturnStatus run_vm_cycle(VM *vm) {
     if (!vm){
-        fprintf(stderr,"VM not initialized!\n");
         return NULL_VM;
     }
     if (!vm->bytecode){
-        fprintf(stderr,"Bytecode is empty!\n");
         return NULL_BYTECODE;
     }
 
@@ -55,7 +49,6 @@ ReturnStatus run_vm_cycle(VM *vm) {
     Handler handler = vm->handlers[current_instruction.opcode];
 
     if (!handler){
-        fprintf(stderr,"Unknown opcode %u\n", current_instruction.opcode);
         return GENERAL_NULL;
     }
 
@@ -63,15 +56,32 @@ ReturnStatus run_vm_cycle(VM *vm) {
     int result = handler(vm, &current_instruction);
     if (result != 0){
         vm->halted = 1;
-        fprintf(stderr, "Handler failed for opcode %u!\n",current_instruction.opcode);
         return GENERAL_NULL;
     }
     return 0;
 }
 
+size_t find_symbol_vm(VM* vm, const char* name) {
+    for (size_t i = 0; i < vm->symbol_count; i++) {
+        if (strcmp(vm->symbols[i].name, name) == 0) {
+            return vm->symbols[i].pc;
+        }
+    }
+    return SIZE_MAX;
+}
+
+ReturnStatus register_symbol_vm(VM* vm, char* name, size_t pc) {
+    if (!vm){
+        return NULL_VM;
+    }
+    vm->symbols[vm->symbol_count].name = name;
+    vm->symbols[vm->symbol_count].pc = pc;
+    vm->symbol_count++;
+    return OK;
+}
+
 ReturnStatus run_range_vm(VM *vm, size_t start, size_t end) {
     if (!vm){
-        fprintf(stderr,"VM not initialized!\n");
         return NULL_VM;
     }
 
@@ -81,7 +91,6 @@ ReturnStatus run_range_vm(VM *vm, size_t start, size_t end) {
     while (vm->pc < end && vm->pc < vm->program_size && !vm->halted) {
         run_vm_cycle(vm);
         if (vm->pc > end){
-            fprintf(stderr, "Warning: at runtime, something tried to manipulate PC when doing run_range, and maniuplated pc to be bigger than end, breaking execution loop\n");
             break;
         }
     }
@@ -92,7 +101,6 @@ ReturnStatus run_range_vm(VM *vm, size_t start, size_t end) {
 
 ReturnStatus run_vm(VM *vm) {
     if (!vm){
-        fprintf(stderr,"VM not initialized!\n");
         return NULL_VM;
     }
     while (vm->pc < vm->program_size && !vm->halted) {
@@ -108,7 +116,6 @@ Instruction make_vm(uint8_t opcode, uint8_t operand_count, int64_t operands[]){
     instruction.operands = malloc(operand_count * sizeof(int64_t));
 
     if (!instruction.operands){
-        fprintf(stderr,"Memory allocation error!\n");
         instruction.operand_count = 0;
         return *NULL_INSTRUCTION_STRUCT;
     }
@@ -122,11 +129,9 @@ Instruction make_vm(uint8_t opcode, uint8_t operand_count, int64_t operands[]){
 
 ReturnStatus register_handler_vm(VM* vm, uint8_t opcode, Handler handler) {
     if (!handler){
-        fprintf(stderr,"Handler not found!\n");
         return GENERAL_NULL;
     }
     if (!vm){
-        fprintf(stderr,"VM not initialized!\n");
         return NULL_VM;
     }
     vm->handlers[opcode] = handler;
@@ -135,7 +140,6 @@ ReturnStatus register_handler_vm(VM* vm, uint8_t opcode, Handler handler) {
 
 ReturnStatus clean_vm(VM *vm) {
     if (!vm){
-        fprintf(stderr,"VM not initialized!\n");
         return NULL_VM;
     }
 
@@ -156,7 +160,6 @@ ReturnStatus clean_vm(VM *vm) {
 
 ReturnStatus reset_vm(VM* vm, size_t capacity) {
     if (!vm) {
-        fprintf(stderr,"VM not initialized!\n");
         return NULL_VM;
     }
 
@@ -179,7 +182,6 @@ ReturnStatus reset_vm(VM* vm, size_t capacity) {
 
 ReturnStatus init_vtable(vtable* vtable) {
     if (!vtable){
-        fprintf(stderr,"VTable is NULL!\n");
         return NULL_VTABLE;
     }
 
@@ -191,6 +193,8 @@ ReturnStatus init_vtable(vtable* vtable) {
     vtable->reset = reset_vm;
     vtable->append = append_vm;
     vtable->run_range = run_range_vm;
+    vtable->find_symbol = find_symbol_vm;
+    vtable->register_symbol = register_symbol_vm;
 
     return OK;
 }
@@ -201,7 +205,6 @@ ReturnStatus init_vm(VM *vm, size_t capacity) {
     vm->vtable = malloc(sizeof(vtable));
 
     if (!vm->vtable){
-        fprintf(stderr,"Memory allocation error!\n");
         return NULL_VTABLE;
     }
 
@@ -221,11 +224,9 @@ ReturnStatus init_vm(VM *vm, size_t capacity) {
 
 Register* find_register(Register* regs, int64_t addr, size_t count){
     if (!regs){
-        fprintf(stderr,"Registers not found!\n");
         return NULL_REGISTER;
     }
     if (addr < 0 || (size_t)addr >= count){
-        fprintf(stderr,"Address out of bounds!\n");
         return NULL_REGISTER;
     }
     return &regs[(size_t)addr];

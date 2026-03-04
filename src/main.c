@@ -27,7 +27,7 @@ int main() {
     vm.vtable->write(&vm, bytecode, 2);
     vm.vtable->run(&vm);
 
-    printf("Result in r0: %" PRId64 "\n", vm.regs[0].data.value);
+    printf("Result in r0: %" PRId64 "\n", vm.regs[0].data.value); //18
     printf("Result in r1: %" PRId64 "\n", vm.regs[1].data.value); //4
 
     vm.vtable->clean(&vm);

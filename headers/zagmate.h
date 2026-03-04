@@ -40,6 +40,11 @@ typedef struct Instruction Instruction;
 typedef int (*Handler)(struct VM*, struct Instruction*);
 
 typedef struct {
+    char* name;
+    size_t pc;
+} Symbol;
+
+typedef struct {
     size_t address;
     enum RegisterType type;
 
@@ -68,6 +73,9 @@ typedef struct {
 
     ReturnStatus (*reset)(struct VM*, size_t);
     ReturnStatus (*run_range)(struct VM*, size_t, size_t);
+
+    size_t (*find_symbol)(struct VM*, const char*);
+    ReturnStatus (*register_symbol)(struct VM*, char*, size_t);
 } vtable;
 
 typedef struct VM {
@@ -78,11 +86,13 @@ typedef struct VM {
     size_t pc;
     size_t sp;
     size_t capacity;
+    size_t symbol_count;
 
     Handler handlers[256];
     Instruction* bytecode;
     Register regs[32];
 
+    Symbol symbols[32];
     int64_t stack[256];
 } VM;
 
