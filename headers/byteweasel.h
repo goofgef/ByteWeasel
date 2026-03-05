@@ -16,6 +16,7 @@
 #define NULL_REGISTER ((Register*) NULL)
 #define NULL_INSTRUCTION_STRUCT ((Instruction*) NULL)
 
+//This is a list of enums, each representing a return status. NULL_WHATEVER is used when WHATEVER isnt found/NULL
 typedef enum{
     OK = 0,
     NULL_VM,
@@ -29,24 +30,21 @@ typedef enum{
     GENERAL_NULL
 }ReturnStatus;
 
-enum RegisterType{
-    TYPE_INT,
-    TYPE_FLOAT,
-    TYPE_PTR
-};
-
+//Declare typedefs so i can use it before we define it.
 typedef struct VM VM;
 typedef struct Instruction Instruction;
 typedef int (*Handler)(struct VM*, struct Instruction*);
 
+//Like an assembly label, just a string that corresponds to a PC value
 typedef struct {
     char* name;
     size_t pc;
 } Symbol;
 
+//Register, stores a value
 typedef struct {
-    enum RegisterType type;
 
+	//Everything shared the same memory
     union {
         void* ptr;
         double value_float;
@@ -55,6 +53,7 @@ typedef struct {
     } data;
 } Register;
 
+// 1 instruction, contains opcode, corresponds to handler, values to work on, and the count of operands
 typedef struct Instruction {
     uint8_t opcode;
     int64_t* operands;
@@ -62,6 +61,7 @@ typedef struct Instruction {
 } Instruction;
 
 typedef struct {
+	//Bunch of pointers to functions with their return type and parameters
     Instruction (*make)(uint8_t, uint8_t, int64_t[]);
 
     ReturnStatus (*append)(struct VM*, struct Instruction);
@@ -77,8 +77,11 @@ typedef struct {
     ReturnStatus (*register_symbol)(struct VM*, char*, size_t);
 } vtable;
 
+//Core VM struct, contains everything from handlers to bytecode to 
 typedef struct VM {
 	vtable *vtable;
+
+	//Halted flag
     int halted;
 
     size_t program_size;

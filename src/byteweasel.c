@@ -5,10 +5,13 @@
 #include <inttypes.h>
 #include <string.h>
 
+//Write a whole allocated list of bytecode to vm->bytecode and set program_size to len
+
 ReturnStatus write_vm(VM *vm, Instruction* bytecode, size_t len) {
     if (!vm){
         return NULL_VM;
     }
+    
     if (!bytecode){
         return NULL_BYTECODE;
     }
@@ -18,6 +21,9 @@ ReturnStatus write_vm(VM *vm, Instruction* bytecode, size_t len) {
 
     return OK;
 }
+
+
+//Append a single instruction to the vm and update program_size by 1
 
 ReturnStatus append_vm(VM *vm, Instruction instruction) {
     if (!vm){
@@ -30,8 +36,12 @@ ReturnStatus append_vm(VM *vm, Instruction instruction) {
     if (vm->program_size >= vm->capacity){
         return FULL_BYTECODE;
     }
+
+    //program_size will always point to an empty slot of the program, because program_size acts as a total number of instructions. So if program_size = 0,  bytecode[program_size] will set bytecode[0] to value.
+    //I tried to make this make sense
     vm->bytecode[vm->program_size] = instruction;
 
+	//Since we are appending 1 instruction, just bump program_size by 1.
     vm->program_size++;
 
     return 0;
@@ -45,13 +55,16 @@ ReturnStatus run_vm_cycle(VM *vm) {
         return NULL_BYTECODE;
     }
 
+	//Fetch current instruction based off of pc
     Instruction current_instruction = vm->bytecode[vm->pc];
+    //Opcode will always represent the correct handler if user uses register_handler, because we set handlers[opcode] to *func
     Handler handler = vm->handlers[current_instruction.opcode];
 
     if (!handler){
         return GENERAL_NULL;
     }
 
+	//Update PC before result 
     vm->pc++;
     int result = handler(vm, &current_instruction);
     if (result != 0){
@@ -62,6 +75,7 @@ ReturnStatus run_vm_cycle(VM *vm) {
 }
 
 size_t find_symbol_vm(VM* vm, const char* name) {
+	//This is 0(N), slow, but easier to read/understand
     for (size_t i = 0; i < vm->symbol_count; i++) {
         if (strcmp(vm->symbols[i].name, name) == 0) {
             return vm->symbols[i].pc;
@@ -74,6 +88,8 @@ ReturnStatus register_symbol_vm(VM* vm, char* name, size_t pc) {
     if (!vm){
         return NULL_VM;
     }
+
+    //Set symbols[count].field to corresponding parameter
     vm->symbols[vm->symbol_count].name = name;
     vm->symbols[vm->symbol_count].pc = pc;
     vm->symbol_count++;
@@ -95,6 +111,7 @@ ReturnStatus run_range_vm(VM *vm, size_t start, size_t end) {
         }
     }
 
+	//Return to original pc before calling run_range. 
     vm->pc = old_pc;
     return OK;
 }
@@ -103,6 +120,7 @@ ReturnStatus run_vm(VM *vm) {
     if (!vm){
         return NULL_VM;
     }
+    //Run until vm->pc < vm->program_size and not vm->halted
     while (vm->pc < vm->program_size && !vm->halted) {
         run_vm_cycle(vm);
     }
@@ -150,7 +168,7 @@ ReturnStatus clean_vm(VM *vm) {
     vm->program_size = 0;
 
     free(vm->bytecode);
-
+	
     vm->bytecode = NULL;
 
     return OK;
@@ -165,6 +183,7 @@ ReturnStatus reset_vm(VM* vm, size_t capacity) {
         free(vm->bytecode[i].operands);
     }
 
+	//Just init but without the vtable and handlers being nulled out/freed.
     free(vm->bytecode);
     vm->bytecode = NULL;
     vm->program_size = 0;
@@ -178,6 +197,7 @@ ReturnStatus reset_vm(VM* vm, size_t capacity) {
     return OK;
 }
 
+//Default vtable of function pointers
 vtable default_vtable = {
     .write            = write_vm,
     .run              = run_vm,
@@ -192,6 +212,7 @@ vtable default_vtable = {
 };
 
 ReturnStatus init_vm(VM *vm, size_t capacity) {
+	//Set most fields to null/zero
     vm->program_size = 0;
     vm->bytecode = NULL;
     vm->vtable = &default_vtable;
@@ -202,11 +223,16 @@ ReturnStatus init_vm(VM *vm, size_t capacity) {
     vm->sp = 0;
 
     vm->halted = 0;
+
+    //Every register at first contains 0
     for (size_t i = 0; i < 32; i++){
         vm->regs[i].data.value = 0;
     }
     return OK;
 }
+
+
+//O(1), find register
 
 Register* find_register(VM* vm, int64_t addr, size_t count){
     if (addr < 0 || (size_t)addr >= count){
