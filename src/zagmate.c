@@ -209,9 +209,6 @@ ReturnStatus init_vm(VM *vm, size_t capacity) {
 }
 
 Register* find_register(VM* vm, int64_t addr, size_t count){
-    if (!vm->regs){
-        return NULL_REGISTER;
-    }
     if (addr < 0 || (size_t)addr >= count){
         return NULL_REGISTER;
     }
