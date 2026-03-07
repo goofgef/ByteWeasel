@@ -28,6 +28,13 @@ typedef enum{
     NULL_UNKNOWN_OPCODE,
     FULL_BYTECODE,
     NULL_VTABLE,
+    NULL_PATH,
+    FAILED_MALLOC,
+    NULL_FILE,
+    UNEQUAL_MAGIC,
+    NULL_OPERANDS,
+    NULL_HANDLER,
+    HALTED,
     GENERAL_NULL
 }ReturnStatus;
 

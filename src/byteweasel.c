@@ -61,7 +61,7 @@ ReturnStatus run_vm_cycle(VM *vm) {
     Handler handler = vm->handlers[current_instruction.opcode];
 
     if (!handler){
-        return GENERAL_NULL;
+        return NULL_HANDLER;
     }
 
 	//Update PC before result 
@@ -69,7 +69,7 @@ ReturnStatus run_vm_cycle(VM *vm) {
     int result = handler(vm, &current_instruction);
     if (result != 0){
         vm->halted = 1;
-        return GENERAL_NULL;
+        return HALTED;
     }
     return 0;
 }
@@ -147,7 +147,7 @@ Instruction make_vm(uint8_t opcode, uint8_t operand_count, int64_t operands[]){
 
 ReturnStatus register_handler_vm(VM* vm, uint8_t opcode, Handler handler) {
     if (!handler){
-        return GENERAL_NULL;
+        return NULL_HANDLER;
     }
     if (!vm){
         return NULL_VM;
@@ -206,12 +206,12 @@ ReturnStatus reset_vm(VM* vm, size_t capacity) {
 //Serialize bytecode
 ReturnStatus serialize_vm(VM *vm, const char *path) {
     if (!vm)       return NULL_VM;
-    if (!path)     return GENERAL_NULL;
+    if (!path)     return NULL_PATH;
     if (!vm->bytecode) return NULL_BYTECODE;
 
     FILE *file = fopen(path, "wb");
     if (!file){
-        return GENERAL_NULL;
+        return NULL_FILE;
     }
 
     //Write magic to disk
@@ -241,11 +241,11 @@ ReturnStatus serialize_vm(VM *vm, const char *path) {
 //Deserialize bytecode
 ReturnStatus deserialize_vm(VM *vm, const char *path) {
     if (!vm)   return NULL_VM;
-    if (!path) return GENERAL_NULL;
+    if (!path) return NULL_PATH;
 
     FILE* f = fopen(path, "rb");
     if (!f){
-        return GENERAL_NULL;
+        return NULL_FILE;
     }
 
     //Check magic to make sure it matches
@@ -253,7 +253,7 @@ ReturnStatus deserialize_vm(VM *vm, const char *path) {
     fread(&magic, sizeof(uint32_t), 1, f);
     if (magic != BW_SERIAL_MAGIC) {
         fclose(f);
-        return GENERAL_NULL;
+        return UNEQUAL_MAGIC;
     }
 
     // Read program size
@@ -264,7 +264,7 @@ ReturnStatus deserialize_vm(VM *vm, const char *path) {
     Instruction* bytecode = malloc(program_size * sizeof(Instruction));
     if (!bytecode) {
         fclose(f);
-        return GENERAL_NULL;
+        return NULL_BYTECODE;
     }
 
     // Read each instruction
@@ -283,7 +283,7 @@ ReturnStatus deserialize_vm(VM *vm, const char *path) {
                 }
                 free(bytecode);
                 fclose(f);
-                return GENERAL_NULL;
+                return NULL_OPERANDS;
             }
             fread(ins->operands, sizeof(int64_t), ins->operand_count, f);
         } else {
