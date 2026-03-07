@@ -197,6 +197,108 @@ ReturnStatus reset_vm(VM* vm, size_t capacity) {
     return OK;
 }
 
+/* file format:
+ * [uint32_t magic] [size_t program_size] [instructions]
+ * each instruction:
+ * [uint8_t opcode] [uint8_t operand_count] [int64_t operands * operand_count]
+*/
+
+//Serialize bytecode
+ReturnStatus serialize_vm(VM *vm, const char *path) {
+    if (!vm)       return NULL_VM;
+    if (!path)     return GENERAL_NULL;
+    if (!vm->bytecode) return NULL_BYTECODE;
+
+    FILE *file = fopen(path, "wb");
+    if (!file){
+        return GENERAL_NULL;
+    }
+
+    //Write magic to disk
+    uint32_t magic = BW_SERIAL_MAGIC;
+    fwrite(&magic, sizeof(uint32_t), 1, file);
+
+    //Write program_size
+    fwrite(&vm->program_size, sizeof(size_t), 1, file);
+
+    // Write each instruction
+    for (size_t i = 0; i < vm->program_size; i++) {
+        Instruction* ins = &vm->bytecode[i];
+
+        fwrite(&ins->opcode, sizeof(uint8_t), 1, file);
+        fwrite(&ins->operand_count, sizeof(uint8_t), 1, file);
+
+        //Write each operand manually
+        if (ins->operand_count > 0 && ins->operands) {
+            fwrite(ins->operands, sizeof(int64_t), ins->operand_count, file);
+        }
+    }
+
+    fclose(file);
+    return OK;
+}
+
+//Deserialize bytecode
+ReturnStatus deserialize_vm(VM *vm, const char *path) {
+    if (!vm)   return NULL_VM;
+    if (!path) return GENERAL_NULL;
+
+    FILE* f = fopen(path, "rb");
+    if (!f){
+        return GENERAL_NULL;
+    }
+
+    //Check magic to make sure it matches
+    uint32_t magic = 0;
+    fread(&magic, sizeof(uint32_t), 1, f);
+    if (magic != BW_SERIAL_MAGIC) {
+        fclose(f);
+        return GENERAL_NULL;
+    }
+
+    // Read program size
+    size_t program_size = 0;
+    fread(&program_size, sizeof(size_t), 1, f);
+
+    // Allocate bytecode array
+    Instruction* bytecode = malloc(program_size * sizeof(Instruction));
+    if (!bytecode) {
+        fclose(f);
+        return GENERAL_NULL;
+    }
+
+    // Read each instruction
+    for (size_t i = 0; i < program_size; i++) {
+        Instruction* ins = &bytecode[i];
+
+        fread(&ins->opcode, sizeof(uint8_t), 1, f);
+        fread(&ins->operand_count, sizeof(uint8_t), 1, f);
+
+        if (ins->operand_count > 0) {
+            ins->operands = malloc(ins->operand_count * sizeof(int64_t));
+            if (!ins->operands) {
+                // Clean up already allocated instructions
+                for (size_t j = 0; j < i; j++) {
+                    free(bytecode[j].operands);
+                }
+                free(bytecode);
+                fclose(f);
+                return GENERAL_NULL;
+            }
+            fread(ins->operands, sizeof(int64_t), ins->operand_count, f);
+        } else {
+            ins->operands = NULL;
+        }
+    }
+
+    fclose(f);
+
+    //write
+    //i dont even know if we should call this directly from the function
+    vm->vtable->write(vm, bytecode, program_size);
+    return OK;
+}
+
 //Default vtable of function pointers
 vtable default_vtable = {
     .write            = write_vm,
@@ -209,6 +311,8 @@ vtable default_vtable = {
     .run_range        = run_range_vm,
     .find_symbol      = find_symbol_vm,
     .register_symbol  = register_symbol_vm,
+    .serialize        = serialize_vm,
+    .deserialize      = deserialize_vm,
 };
 
 ReturnStatus init_vm(VM *vm, size_t capacity) {

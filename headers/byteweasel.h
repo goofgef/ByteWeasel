@@ -15,6 +15,7 @@
 
 #define NULL_REGISTER ((Register*) NULL)
 #define NULL_INSTRUCTION_STRUCT ((Instruction*) NULL)
+#define BW_SERIAL_MAGIC 0x42454C4C //BELL
 
 //This is a list of enums, each representing a return status. NULL_WHATEVER is used when WHATEVER isnt found/NULL
 typedef enum{
@@ -72,6 +73,9 @@ typedef struct {
 
     ReturnStatus (*reset)(struct VM*, size_t);
     ReturnStatus (*run_range)(struct VM*, size_t, size_t);
+
+	ReturnStatus (*serialize)(struct VM*, const char*);
+	ReturnStatus (*deserialize)(struct VM*, const char*);
 
     size_t (*find_symbol)(struct VM*, const char*);
     ReturnStatus (*register_symbol)(struct VM*, char*, size_t);
